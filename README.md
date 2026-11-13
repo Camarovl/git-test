@@ -203,7 +203,7 @@ DSH 默认只能写**当前会话的工作目录**（如 `C:\Users\你的用户�
 ```
 
 它依次执行 `git status` → `git diff` → `git add` → `git commit` → `git push -u origin <分支>`。
-push 成功后终端会给出创建 Pull Request 的链接。
+push 成功后终端会给出一个创建 Pull Request 的链接 —— **正式项目里不用点它**，PR 由组长 A 负责（见附录 C）。
 
 **5. 拉别人的更新**
 
@@ -381,7 +381,7 @@ git push -u origin test/zhangsan        # 传到网上（第一次推要 -u）
 - **`add` 和 `commit` 是两步**。`add` 是把东西摆到桌上，`commit` 才是拍照存档。
 - **`commit` 只存在你自己电脑上，`push` 之后队友才看得见。** 光 commit 不 push，等于没交作业。
 
-### 第 5 步 · 提 Pull Request（**这次练手才需要合并，平时不要**）
+### 第 5 步 · 等组长合并（**只有这次练手需要你自己开 PR**）
 
 push 成功后终端会吐出一行链接：
 
@@ -389,7 +389,8 @@ push 成功后终端会吐出一行链接：
 remote:      https://github.com/Camarovl/git-test/pull/new/test/zhangsan
 ```
 
-浏览器打开 → **Create pull request** → 标题 `test: zhangsan 首次提交` → 拉一位组员当 Reviewer → 他点 **Merge** → 完成 🎉
+📌 **练手例外：** 为了让你亲手走完一遍闭环，这一次由你自己开 PR、自己点 Merge。
+浏览器打开那行链接 → **Create pull request** → 标题 `test: zhangsan 首次提交` → **Merge pull request** → 完成 🎉
 
 回本地收尾：
 
@@ -397,8 +398,9 @@ remote:      https://github.com/Camarovl/git-test/pull/new/test/zhangsan
 切回 main，拉最新代码，把我那条已经合并的分支删掉
 ```
 
-> ⚠️ **合并是本次练手的终点，不是日常动作。** 之所以要合，是为了让你亲眼看到"我的改动进了主干"。
-> 正式项目里 `main` 是交付用的干净主干，不能想合就合 —— 见下面附录 C。
+> ⚠️ **这是唯一一次让你自己动手合并。** 正式开工后规矩变了：
+> **你 push 完就停手，不开 PR、不碰 Merge 按钮** —— 那些都由组长 A 做。
+> 完整流程见下面附录 C。
 
 ---
 
@@ -450,39 +452,66 @@ git push                        # 只推自己的分支
 ⚠️ **连组长 A 自己也推不动 main**（这条规则对所有人一视同仁）。这不是配置失误，是刻意的：
 如果 Owner 能直推，"main 永远干净"就全靠自觉，迟早破功。想让某个改动进主干，唯一路径就是开 PR。
 
-### 怎么把改动合进 main（完整流程）
+### 怎么把改动交上去（组员的流程，到 push 就结束了）
 
 ```bash
-# 1. 在自己的分支上做完改动并推送
+# 1. 在自己的分支上干活、commit
+git switch feature/login
+# ...改代码...
+git add <文件> && git commit -m "feat: 登录页"
+
+# 2. 推到自己的分支 —— 到这里就是你的全部工作
 git push -u origin feature/login
 
-# 2. 打开终端里给出的链接创建 PR
-#    https://github.com/Camarovl/git-test/pull/new/feature/login
+# 3. 群里说一声：「feature/login 推好了，功能本地跑通了」
 
-# 3. 网页上点 Compare & pull request → 填描述（模板见下）→ Create pull request
-
-# 4. 找一位组员 review；组长 A 点 Merge pull request
-
-# 5. 本地收尾
+# 4. 等组长 A 合并之后再收尾
 git switch main && git pull
 git branch -d feature/login
 ```
 
-也可以直接让 DSH 干："帮我为当前分支创建一个 PR，标题按规范写，描述用附录里的模板填"。
+🔴 **不要自己开 PR，也不要点任何 Merge 按钮。**
+push 完在群里报一句就行，**创建 PR 和合并都由组长 A 来做**。
+
+理由不是嫌你们麻烦，而是：五个人各自决定往主干合，一旦某次合进跑不起来的东西，
+全组第二天 clone 到的就是废代码，还很难查是谁哪一次合进去的。收口点只留一个，出问题好定位。
+
+> ⚠️ GitHub 网页上那个绿色的 **Merge pull request** 按钮对你们也是可点的（协作者权限自带），
+> 拦你们靠的是这条约定，不是机器。**手滑点了就是事故，别碰它。**
+> 同理也别点 "Close pull request" —— 关掉别人的 PR 会让改动丢失上下文。
+
+### PR 是什么（一句话）
+
+**PR = Pull Request = "请求把这批改动拉进主干"**。它是 GitHub 网页上的一个评审页面，
+会列出你的分支和 `main` 到底差在哪几行，别人可以在具体代码行下面留言，最后有人点 Merge 才真正生效。
+
+git 本身没有 PR，只有 `merge`；PR 是 GitHub 加的流程外壳。
+
+### 组长 A 做什么（负责合并的人看这里）
+
+```text
+组员在群里报了分支名之后：
+1. git fetch origin            # 拉下他的分支
+2. 网页打开该分支 → Compare & pull request → 填描述 → Create pull request
+3. 过一遍 Files changed，有问题就在行内评论，让他改完重新 push
+4. 没问题 → 点 Merge pull request → Confirm merge
+5. 删掉源分支（合并后 GitHub 会显示这个按钮）
+6. 群里回一句「已合并」，组员这时才能 git pull 收尾
+```
+
+也可以让 DSH 代劳：「检查 origin/feature/login 与 main 的差异，列出改了哪些文件，先别动」。
 
 ### 什么时候才允许合进 main
 
-三条全满足才提合并请求：
+组长 A 手上这三条全满足才动手：
 
-1. 这块功能**在自己电脑上跑通了**，不是"应该没问题"；
-2. **另一位组员看过并同意**（review），不是自己点头；
-3. 属于里程碑收口点 —— 通常**每周一次**：W1 需求冻结、W2 主干打通、W3 上线、W4 定版。
+1. 这块功能**作者本人确认在自己电脑上跑通了**，不是"应该没问题"；
+2. 属于里程碑收口点 —— 通常**每周一次**：W1 需求冻结、W2 主干打通、W3 上线、W4 定版；
+3. 紧急修 bug 可以插队，但同样走 PR，不直接推。
 
 ### 谁有权点 Merge
 
-**只有组长 A。** 其他四个人只负责「提出 PR + 请人 review」。
-这是团队约定，GitHub 层面管不到这么细（个人仓库没法指定"谁能合并"），靠五个人自觉。
-理由很实在：各自决定往主干合，一旦某次合进跑不起来的东西，全组第二天 clone 到的就是废代码，还很难查是谁哪次合进去的。
+**只有组长 A**，具体动作见上面「组长 A 做什么」。其他四个人只管到 push 那一步。
 
 `main` 坏了怎么办：
 
@@ -526,7 +555,7 @@ git push
 | 时间 | 每个人做什么 | 是否合并 main |
 |---|---|---|
 | 每天 | 在自己的 feature 分支上 commit + push，同步一次 main | ❌ |
-| 每周结束 | 功能跑通 + 找人 review → 提 PR | ✅ 组长 A 审完合并 |
+| 每周结束 | 功能跑通 → push 到自己分支并在群里报一声 | ✅ 组长 A 开 PR 并合并 |
 | W4 答辩前 | 冻结代码，只允许 `fix/` 分支进 main | ✅ 定版合并 |
 
 > ⚠️ 「每天 commit + push」指**当天有可交付成果时推一次**，不是每改十行推一把。
@@ -551,7 +580,7 @@ git push
 - [ ] 代码在我电脑上真的跑通过
 - [ ] `git status` 里没有多余文件（尤其别把 `.env`、数据集、`__pycache__/` 混进去）
 - [ ] commit message 说得清这次干了什么，不是 `111` / `update`
-- [ ] PR 已发出并且有人 review 合并（**仅本次练手，正式项目见附录 C**）
+- [ ] 已 push 到远端我的分支，并在群里报了分支名（**正式项目到此为止，不开 PR；仅本次练手需要自己开合并**）
 - [ ] 合并后本地 `git pull` 过，旧分支已删
 
 ### 日常习惯自查（第六节第 6、7 条）
@@ -576,5 +605,5 @@ git push
 | 完全看不懂它在说什么 | 整段红字原样粘给 DSH，问「这是什么意思，该怎么办」—— **是问方案，不是让它直接改** |
 
 > 通关标准：**GitHub 上能看到你那个 `hello_zhangsan.py` 被合并进了 `main`**。
-> 但请记住：正式项目里 `main` 已开分支保护，**谁都推不动，改动必须走 PR**，且只有组长 A 点合并，
-> 平时你只把改动推到自己的分支上 —— 完整规则见附录 C。
+> 但请记住：正式项目里 `main` 已开分支保护，**谁都推不动**；而且**PR 由组长 A 创建、Merge 由组长 A 点**，
+> 你只负责把改动 push 到自己的分支并在群里报一声 —— 完整规则见附录 C。
