@@ -41,7 +41,7 @@ DSH（DeepSeek Harness）是一个**能直接在你电脑上干活的 AI 编程�
 | Choosing Default Editor | **Use Visual Studio Code / Notepad**（看你习惯） | 选 Vim 的话新手改提交信息会卡住 |
 | Adjusting your name and email | 先随便填 | 下一步会用正确身份覆盖掉 |
 
-⚠️ 别勾选 "Enable file system caching" 之外的奇怪选项，默认值最稳。
+装完直接一路 Next 就行，默认选项最稳；只有上面两处值得停一下看一眼。
 
 装完验证 —— 打开 **PowerShell**（Win + R 输入 `powershell`）：
 
@@ -247,7 +247,7 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 | 咨询、看思路 | 「**先别改任何文件**，列出方案和优缺点」 |
 | 真的动手 | 「按方案二执行」 |
 | 先看再说 | 「读代码告诉我问题在哪，**不要修改**」 |
-| 中途反悔 | 「停，撤销你刚才的改动」（未 commit 时即 `git restore .`） |
+| 中途反悔 | 「停，撤销你刚才的改动」—— 注意 `git restore .` 不会删 AI 新建的文件，得让它一并清掉 |
 
 话术模板，复制着用：
 
@@ -278,8 +278,8 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 
 - **攒了一堆碎提交？** 说「把这个分支今天几个小提交整理成一条，还没 push，可以放心改写」。
   （即 rebase / `git reset --soft`，⚠️ **只能用于尚未 push 的提交**）
-- **只是想防丢？** `git stash` 或本地 commit，没 push 就没人看得见。
-- **必须中途推（比如换电脑）？** 提 **Draft PR**，标题写 `WIP:`，队友一眼就知道没做完。
+- **只是想防丢？** `git stash`（把未提交的改动临时收起来，之后 `git stash pop` 取回）或本地 commit —— 没 push 就没人看得见。
+- **改动做到一半要切分支？** 先 `git stash` 收好，切回来再 `git stash pop`；别带着半成品到处切。
 
 一句话：**commit 可以频繁，push 要有分寸。**
 
@@ -292,6 +292,8 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 | 组员 A（组长 / 文档） | 起草 README、需求文档，整理会议纪要进仓库 |
 | 组员 B（代码） | 写功能代码、跑测试、修 lint |
 | 组员 E（仓库规范） | 管 `.gitignore`、PR 模板，检查有没有敏感文件混进去 |
+
+
 | 遇到冲突的人 | 让 DSH 解释双方差异，再由两人线下对齐 |
 
 协作规矩很简单：**一人一个分支，一个小目录，少碰同一个文件**，冲突自然少。
@@ -311,7 +313,7 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 
 ---
 
-## 附录 B：你的第一次任务 —— 加入分支，交一个 `hello world.py`
+## 附录 B：你的第一次任务 —— 加入分支，交一个 `hello_<你的名字>.py`
 
 共 5 步，做完就算通关。**不需要你记命令**，照着把话发给 DSH 就行。
 
@@ -341,9 +343,9 @@ git switch -c test/zhangsan     # -c = create，新建并立刻切过去
 git branch                      # 确认带 * 号的是你的分支
 ```
 
-⚠️ **分支名只能用大小写字母、数字、`-`、`_`、`/`，不要空格和中文**，否则后面各种报错。
+⚠️ **分支名只用小写字母、数字和 `-` `_` `.` `/`**。空格和 `~ ^ : ? * [ \` 是 git 明确禁止的字符（建了会直接报错）；中文技术上能建，但跨系统、命令行引用时麻烦不断，别用。统一小写拼音最省心。
 
-### 第 3 步 · 写 `hello world.py`
+### 第 3 步 · 写 `hello_<你的名字>.py`
 
 ```text
 在当前分支根目录建一个 hello_zhangsan.py，内容是打印一句 hello world 和我的名字
@@ -435,15 +437,17 @@ git push                        # 只推自己的分支
 
 ### 仓库已经开好的保护
 
-`main` 开了分支保护，以下动作会被 GitHub 直接拒绝：
+`main` 开了分支保护，**直推 main 会被 GitHub 拒绝**；推自己的分支不受任何限制。
 
 | 你尝试的动作 | 结果 |
 |---|---|
-| `git push origin main` | ❌ `protected branch hook declined` |
-| `git push --force origin main` | ❌ `Cannot force-push to this branch` |
-| `git push origin test/你的名字` | ✅ 正常，自己的分支不受限制 |
+| `git push origin main` | ❌ 被拒 |
+| `git push --force origin main` | ❌ 被拒 |
+| `git push origin test/你的名字` | ✅ 正常 |
 
-撞到前两条报错不是你操作错了，是规则在起作用 —— **别想办法绕，改走上面的流程**。
+被拒时终端那段红字各版本措辞不同（常见字样：`GH006`、`protected branch`、`hook declined`），**看到这类提示就是规则在起作用，不是你操作错了**。
+
+⚠️ 但它只拦"直推 main"，**拦不住你自己开 PR 再点 Merge**。真正的闸门是下面这条约定。
 
 ### 怎么把改动交上去（到 push 就结束了）
 
@@ -462,6 +466,8 @@ git push -u origin feature/login
 git switch main && git pull
 git branch -d feature/login
 ```
+
+⚠️ 报 `not fully merged` 说明组长用了 Squash 合并，不是出事了 —— 确认远端已合并后改用大写 `git branch -D feature/login`。
 
 🔴 **不要自己开 PR，也不要合并 —— 包括不要让你的 DSH 帮你合并。**
 push 完在群里报一句就行，PR 和合并都由组长来做。
@@ -544,13 +550,12 @@ git 本身没有 PR，只有 `merge`；PR 是 GitHub 加的流程外壳。
 
 | 现象 | 处理 |
 |---|---|
-| push 提示要用户名密码 | GitHub 不收密码。说「push 认证失败了，帮我配 Personal Access Token」 |
+| push 提示要用户名密码 | GitHub 不收密码。登录一次 GitHub Desktop，或去 Settings → Developer settings 生成 Personal Access Token 交给 DSH |
 | `failed to push some refs` | 别人刚合了东西。先说「帮我 pull 一下再重新推」 |
 | 冒出 `<<<<<<<` 怪符号 | 这就是冲突。说「列出冲突文件和双方内容，我自己决定」，**别让 AI 替你选** |
-| 提交了不该提交的文件 | 说「把这个文件从上一次提交里撤掉，用安全的方式」（即 `git revert`） |
+| 提交了不该提交的文件 | 还没 push：说「把这个文件从暂存区取消，别提交它」。已经 push 了：`git revert` 撤的是**整条提交**、不能只撤单个文件，所以让组长处理 |
 | `Failed to connect to github.com:443` | 多为 DNS 解析到不可达节点或代理没开，重试几次即可，不是你操作错了 |
-| `protected branch hook declined` / `Changes must be made through a pull request` | **规则在起作用**，不是故障。改成走 PR 合并（流程见附录 C），别想办法绕 |
-| `Cannot force-push to this branch` | main 禁止强推。撤销已推送的改动请用 `git revert` + PR |
+| 报错里出现 `protected` / `GH006` / `hook declined` 字样 | **规则在起作用**，不是故障。让组长去走 PR 合并（流程见附录 C），别想办法绕 |
 | 完全看不懂它在说什么 | 整段红字原样粘给 DSH，问「这是什么意思，该怎么办」—— **是问方案，不是让它直接改** |
 
 > 通关标准：**组长把你那条 `hello_zhangsan.py` 合并进了 `main`**（合并由他做，你只管 push 和报一声）。
