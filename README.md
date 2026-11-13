@@ -190,3 +190,134 @@ git push -u origin test/zhangsan
 ```bash
 git switch main && git pull && git branch -d test/zhangsan
 ```
+
+---
+
+## 附录 C：你的第一次任务 —— 加进分支，交一个 `hello world.py`
+
+整个任务只有 5 步，做完就算通关。**全程不需要你记命令**，照着把话发给 DSH 就行。
+
+### 第 1 步 · 把仓库拿到自己电脑上
+
+对 DSH 说：
+
+```text
+帮我 clone https://github.com/Camarovl/git-test.git，放到当前工作目录里
+```
+
+它会建出一个 `git-test` 文件夹。以后所有操作都在这个文件夹里做。
+
+### 第 2 步 · 加入分支（每人一条自己的分支）
+
+先搞懂一句话：**分支就是平行宇宙**。你在 `test/你的名字` 上怎么改，都不会影响别人的 `main`。
+为什么不能直接在 `main` 上改？因为五个人同时往 `main` 推东西，一定会打起来（冲突）。
+
+对 DSH 说：
+
+```text
+在 git-test 仓库里，基于 main 新建一个叫 test/zhangsan 的分支并切换过去
+```
+
+（把 `zhangsan` 换成你自己的拼音缩写，比如 `lisi`、`wangwu`。）
+
+它实际执行的是这两条，扫一眼认识一下就好：
+
+```bash
+git switch -c test/zhangsan     # -c = create，新建并立刻切过去
+git branch                      # 确认前面有 * 号的是你的分支
+```
+
+⚠️ **分支名只能有小写字母、数字、`-`、`_`、`/`，不要有空格和中文**，否则后面各种报错。
+
+### 第 3 步 · 写 `hello world.py`
+
+对 DSH 说：
+
+```text
+在当前分支根目录建一个 hello_zhangsan.py，内容是打印一句 hello world 和我的名字
+```
+
+文件长这样（文件名带上自己的名字，五个人就不会撞车）：
+
+```python
+# hello_zhangsan.py
+print("Hello, world!")
+print("我是张三，这是我第一次用 git 提交的代码")
+```
+
+顺手让它跑一下确认能运行：
+
+```text
+用 python 跑一遍这个文件，把输出给我看
+```
+
+看到 `Hello, world!` 就对了。**别提交跑不通的代码**——这是给正式项目养习惯。
+
+### 第 4 步 · commit（存档）+ push（上传）
+
+对 DSH 说：
+
+```text
+看一下当前改动，提交这条改动，然后推到我的分支 origin/test/zhangsan
+```
+
+它按顺序干这四件事：
+
+```bash
+git status                              # 看看有哪些改动
+git add hello_zhangsan.py               # 挑选要存档的文件
+git commit -m "feat: zhangsan 提交 hello world"   # 存一个档
+git push -u origin test/zhangsan        # 传到网上（第一次推要 -u）
+```
+
+两个新手最容易懵的点：
+
+- **`add` 和 `commit` 是两步**。`add` 是把东西摆到桌上，`commit` 才是拍照存档。没 `add` 的文件不会进 commit。
+- **`commit` 只存在你自己电脑上，`push` 之后队友才看得见。** 光 commit 不 push，等于没交作业。
+
+### 第 5 步 · 提 Pull Request，让组员帮你合并
+
+push 成功后，终端会吐出一行类似这样的链接：
+
+```text
+remote:      https://github.com/Camarovl/git-test/pull/new/test/zhangsan
+```
+
+浏览器打开它 → 点 **Create pull request** → 标题写 `test: zhangsan 首次提交` → 拉一位组员进来当 Reviewer → 他点 **Merge pull request** → 完成 🎉
+
+回到本地收尾，对 DSH 说：
+
+```text
+切回 main，拉最新代码，把我那条已经合并的分支删掉
+```
+
+```bash
+git switch main
+git pull                    # 现在你的 hello world 已经在 main 里了
+git branch -d test/zhangsan
+```
+
+---
+
+### 检查清单（交作业前对一遍）
+
+- [ ] 我的分支叫 `test/<我的拼音缩写>`，不是直接改 `main`
+- [ ] 文件名带了自己的名字，如 `hello_zhangsan.py`
+- [ ] 代码在我电脑上真的跑通过
+- [ ] `git status` 里没有多余文件（尤其别把 `.env`、数据集、`__pycache__/` 混进去）
+- [ ] commit message 说得清这次干了什么，不是 `111` / `update`
+- [ ] PR 已发出并且有人 review 合并
+- [ ] 合并后本地 `git pull` 过，旧分支已删
+
+### 卡住了怎么办
+
+| 现象 | 处理 |
+|---|---|
+| push 提示要用户名密码 | GitHub 不收密码。对 DSH 说「push 认证失败了，帮我配 Personal Access Token」 |
+| `failed to push some refs` | 别人刚合了东西。先说「帮我 pull 一下再重新推」 |
+| 冒出 `<<<<<<<` 这种怪符号 | 这就是冲突。说「列出冲突文件和双方内容，我自己决定怎么改」，**别让 AI 替你选** |
+| 提交了不该提交的文件 | 说「帮我把这个文件从上一次提交里撤掉，用安全的方式」（即 `git revert`） |
+| 完全看不懂它在说什么 | 把终端整段红字原样粘给 DSH，问「这是什么意思，我该怎么办」 |
+
+> 通关标准很简单：**GitHub 上能看到你那个 `hello_zhangsan.py` 被合并进了 `main`**。
+> 做到这一步，你就已经具备做正式项目仓库的能力了。
