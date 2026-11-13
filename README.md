@@ -432,6 +432,44 @@ git push                        # 只推自己的分支
 **为什么要每天同步 main**：你和别人各憋两周不合，最后合并时冲突多到没法收拾。
 小步同步 = 每次只处理一点点冲突，这是团队协作里最值钱的习惯。
 
+### 仓库已经开好的保护（实测过）
+
+`main` 分支已启用分支保护，规则是**实测验证过的**，不是摆设：
+
+| 你尝试的动作 | 结果 |
+|---|---|
+| `git push origin main` | ❌ 被拒：`remote rejected (protected branch hook declined)` + `Changes must be made through a pull request.` |
+| `git push --force origin main` | ❌ 被拒：`Cannot force-push to this branch` |
+| 删除 main 分支 | ❌ 禁止 |
+| `git push origin test/你的名字` | ✅ 正常，自己的分支不受任何限制 |
+| 提 PR 并合并 | ✅ 正常（PR #1 就是这么合进去的） |
+
+所以**不用记规矩了，Git 会替你拦**。撞到上面那些报错不是你操作错了，是规则在起作用 ——
+正确反应是改走 PR，而不是去想办法绕过它。
+
+⚠️ **连组长 A 自己也推不动 main**（这条规则对所有人一视同仁）。这不是配置失误，是刻意的：
+如果 Owner 能直推，"main 永远干净"就全靠自觉，迟早破功。想让某个改动进主干，唯一路径就是开 PR。
+
+### 怎么把改动合进 main（完整流程）
+
+```bash
+# 1. 在自己的分支上做完改动并推送
+git push -u origin feature/login
+
+# 2. 打开终端里给出的链接创建 PR
+#    https://github.com/Camarovl/git-test/pull/new/feature/login
+
+# 3. 网页上点 Compare & pull request → 填描述（模板见下）→ Create pull request
+
+# 4. 找一位组员 review；组长 A 点 Merge pull request
+
+# 5. 本地收尾
+git switch main && git pull
+git branch -d feature/login
+```
+
+也可以直接让 DSH 干："帮我为当前分支创建一个 PR，标题按规范写，描述用附录里的模板填"。
+
 ### 什么时候才允许合进 main
 
 三条全满足才提合并请求：
@@ -442,7 +480,8 @@ git push                        # 只推自己的分支
 
 ### 谁有权点 Merge
 
-**只有组长 A**，其他四人只负责「提出 PR + 请人 review」。
+**只有组长 A。** 其他四个人只负责「提出 PR + 请人 review」。
+这是团队约定，GitHub 层面管不到这么细（个人仓库没法指定"谁能合并"），靠五个人自觉。
 理由很实在：各自决定往主干合，一旦某次合进跑不起来的东西，全组第二天 clone 到的就是废代码，还很难查是谁哪次合进去的。
 
 `main` 坏了怎么办：
@@ -532,8 +571,10 @@ git push
 | 冒出 `<<<<<<<` 怪符号 | 这就是冲突。说「列出冲突文件和双方内容，我自己决定」，**别让 AI 替你选** |
 | 提交了不该提交的文件 | 说「把这个文件从上一次提交里撤掉，用安全的方式」（即 `git revert`） |
 | `Failed to connect to github.com:443` | 多为 DNS 解析到不可达节点或代理没开，重试几次即可，不是你操作错了 |
+| `protected branch hook declined` / `Changes must be made through a pull request` | **规则在起作用**，不是故障。改成走 PR 合并（流程见附录 C），别想办法绕 |
+| `Cannot force-push to this branch` | main 禁止强推。撤销已推送的改动请用 `git revert` + PR |
 | 完全看不懂它在说什么 | 整段红字原样粘给 DSH，问「这是什么意思，该怎么办」—— **是问方案，不是让它直接改** |
 
 > 通关标准：**GitHub 上能看到你那个 `hello_zhangsan.py` 被合并进了 `main`**。
-> 但请记住这次是你自己点 Merge 练手；正式开工后往 `main` 合并只有组长 A 能做，
+> 但请记住：正式项目里 `main` 已开分支保护，**谁都推不动，改动必须走 PR**，且只有组长 A 点合并，
 > 平时你只把改动推到自己的分支上 —— 完整规则见附录 C。
