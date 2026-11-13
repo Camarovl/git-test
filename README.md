@@ -28,7 +28,98 @@ DSH（DeepSeek Harness）是一个**能直接在你电脑上干活的 AI 编程�
 
 ---
 
-## 一、核心心智模型
+## 一、开工前准备（只做一次，约 20 分钟）
+
+### ① 装 Git for Windows
+
+下载地址：<https://git-scm.com/download/win>（64-bit 安装包，约 60 MB）
+
+安装时**一路 Next 即可**，只有两处注意：
+
+| 界面 | 选什么 | 说明 |
+|---|---|---|
+| Choosing Default Editor | **Use Visual Studio Code / Notepad**（看你习惯） | 选 Vim 的话新手改提交信息会卡住 |
+| Adjusting your name and email | 先随便填 | 下一步会用正确身份覆盖掉 |
+
+⚠️ 别勾选 "Enable file system caching" 之外的奇怪选项，默认值最稳。
+
+装完验证 —— 打开 **PowerShell**（Win + R 输入 `powershell`）：
+
+```powershell
+git --version
+```
+
+出现 `git version 2.xx.x.windows.x` 就成功了。**报"不是内部或外部命令"** = 没装好或没进 PATH，重装一次。
+
+### ② 装 Python 3.11
+
+下载地址：<https://www.python.org/downloads/release/python-3119/>（拉到页面底部，选 **Windows installer (64-bit)**）
+
+🔴 **安装第一屏必须勾选 "Add python.exe to PATH"**，不勾后面全项目都会踩坑。
+其余一路 Next。
+
+验证：
+
+```powershell
+python --version      # 期望输出 Python 3.11.x
+pip --version
+```
+
+### ③ 注册 GitHub 账号
+
+<https://github.com/signup> —— 用你自己的邮箱注册，用户名建议用拼音（后面建分支、命名文件都要用）。
+
+注册后去 **Settings → Emails** 确认那个邮箱是 **Verified** 状态。
+Git 提交记录靠**邮箱**认人，邮箱没在 GitHub 上验证过，Contributors 页面就不会显示你。
+
+### ④ 配 git 身份（每人必做）
+
+打开 PowerShell 逐行执行，换成自己的信息：
+
+```bash
+git config --global user.name  "你的名字或拼音"
+git config --global user.email "你的邮箱"
+git config --global init.defaultBranch main     # 与 GitHub 默认分支保持一致
+git config --global --list                       # 检查是否都写进去了
+```
+
+### ⑤ 测试能不能连上 GitHub
+
+```powershell
+curl.exe -I https://github.com --max-time 15
+```
+
+看到 `HTTP/1.1 200` 或 `301` = 通；看到 `Recv failure` / `Could not connect` = 不通，**先回头做第一节第⑥步**。
+
+### ⑥ 让命令行也能走代理（第⑤步不通才需要）
+
+浏览器能打开 GitHub ≠ 命令行能 push —— 浏览器走代理，git 默认不走。
+先看你代理软件的端口（Clash 常见 `7890`，v2rayN 常见 `10808` / `10809`），然后：
+
+```bash
+git config --global http.proxy  http://127.0.0.1:<你的端口>
+git config --global https.proxy http://127.0.0.1:<你的端口>
+
+# 撤销配置
+git config --global --unset http.proxy
+git config --global --unset https.proxy
+```
+
+或者更省事：**打开代理软件的 TUN / 系统代理模式**，让所有程序都走。
+
+> 🔴 代理软件必须**常驻运行**才能 push。答辩前一晚发现某人代理没开，是最常见的事故。
+
+### 全部装好后，交给组长这个清单
+
+- [ ] `git --version` 有版本号
+- [ ] `python --version` 显示 3.11.x
+- [ ] GitHub 已注册且邮箱 Verified
+- [ ] `git config --global --list` 里能看到自己的 name / email
+- [ ] `curl.exe -I https://github.com` 返回 200/301
+
+---
+
+## 二、核心心智模型
 
 | 角色 | 干什么 |
 |---|---|
@@ -37,48 +128,40 @@ DSH（DeepSeek Harness）是一个**能直接在你电脑上干活的 AI 编程�
 | **审批弹窗** | 「写工作目录之外」「联网」「更高权限」的操作都会问你，看清理由再点 |
 
 ⚠️ DSH **不会等你想清楚** —— 你说"帮我加个登录页"，它就直接开始改文件了。
-所以组内约定：**提问只让它给方案，确定要改了才让它执行；做好了才 push。**（第五节第 6、7 条）
+所以组内约定：**提问只让它给方案，确定要改了才让它执行；做好了才 push。**（第六节第 6、7 条）
 
 DSH 默认只能写**当前会话的工作目录**（如 `C:\Users\你的用户名\Desktop\dsh`）。clone 到别处要走一次审批，这是防止 AI 乱改你电脑上的东西。
 
 ---
 
-## 二、第一次配置（只做一次）
+## 三、第一次让 DSH 帮你体检（懒人版）
 
-打开 DSH，新建会话，对它说：
+上面第一节你也可以**不手动装**，直接让 DSH 代劳。打开 DSH 新建会话，对它说：
+
+```text
+我还没装 git 和 python，帮我检查本机有没有装、版本多少，缺的告诉我该下载什么
+```
+
+它会跑 `git --version`、`python --version` 之类去查，并给出下一步。接着说：
 
 ```text
 帮我检查本地 git 配置，看看有没有配 user.name / user.email，以及能不能连上 github
 ```
 
-它会自己跑 `git config --list --show-origin`、测网络、报告结论。然后说：
+它会自己跑 `git config --list --show-origin`、测网络连通性，把结论告诉你。最后：
 
 ```text
 把我的 git 用户名设成 <你的名字>，邮箱 <你的邮箱>
 ```
 
-### ⚠️ 校园网 / 代理必看
+> ⚠️ 但**下载安装包这一步 DSH 做不了**（它不能替你点安装向导），所以图形化安装还是得你自己动手，见第一节。
+> 推荐做法：**照着第一节手动装，装完再用 DSH 验证。**
 
-本项目实测过的坑：**浏览器能打开 GitHub ≠ 命令行能 push**。浏览器走代理，git 默认不走。
-
-```text
-我的 git 推不上去，怀疑是代理问题。帮我查系统代理设置、git 的 http.proxy 配置，
-然后按我代理软件的实际端口给 git 配上代理
-```
-
-修法一般是这两种之一：
-
-```bash
-git config --global http.proxy  http://127.0.0.1:<你的端口>   # Clash 常见 7890，v2rayN 常见 10809
-git config --global https.proxy http://127.0.0.1:<你的端口>
-# 或者：开代理软件的 TUN / 系统代理模式，让所有程序都走
-```
-
-> 代理软件必须**常驻运行**才能 push。答辩前一晚发现某人代理没开，是最常见的事故。
+如果体检后仍然推不上去，多半是代理问题 —— 处理办法见 [第一节第⑥步](#一开工前准备只做一次约-20-分钟)。
 
 ---
 
-## 三、日常五件事（每件事一句话）
+## 四、日常五件事（每件事一句话）
 
 **1. 克隆仓库**
 
@@ -121,7 +204,7 @@ push 成功后终端会给出创建 Pull Request 的链接。
 
 ---
 
-## 四、出问题时，直接把报错丢给它
+## 五、出问题时，直接把报错丢给它
 
 不要截图去搜，粘贴过来问：
 
@@ -135,7 +218,7 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 
 ---
 
-## 五、组内约定（务必遵守）
+## 六、组内约定（务必遵守）
 
 1. **DSH 只能在你批准后才能碰工作目录以外的文件。** 审批弹窗要读完理由再点，别形成肌肉记忆一路同意。
 2. **不要让 DSH 自动解决 merge 冲突。** 让它列出冲突文件和双方内容，人来决定。
@@ -191,7 +274,7 @@ fatal: could not read Username for 'https://github.com': terminal prompts disabl
 
 ---
 
-## 六、推荐分工用法
+## 七、推荐分工用法
 
 | 谁 | 让 DSH 干什么 |
 |---|---|
@@ -397,7 +480,7 @@ git push
 | W4 答辩前 | 冻结代码，只允许 `fix/` 分支进 main | ✅ 定版合并 |
 
 > ⚠️ 「每天 commit + push」指**当天有可交付成果时推一次**，不是每改十行推一把。
-> 判断标准：这条提交别人拉下来能不能正常跑？不能就别推（第五节第 7 条）。
+> 判断标准：这条提交别人拉下来能不能正常跑？不能就别推（第六节第 7 条）。
 
 > 记住差别：**练手的目标是"合进去看看"，正式项目的目标是"main 永远是好的"。**
 
@@ -421,7 +504,7 @@ git push
 - [ ] PR 已发出并且有人 review 合并（**仅本次练手，正式项目见附录 C**）
 - [ ] 合并后本地 `git pull` 过，旧分支已删
 
-### 日常习惯自查（第五节第 6、7 条）
+### 日常习惯自查（第六节第 6、7 条）
 
 - [ ] 问问题时说了「先别改文件，只列方案」
 - [ ] 只有确认要动手了才让 agent 执行
