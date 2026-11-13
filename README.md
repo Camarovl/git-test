@@ -67,7 +67,7 @@ pip --version
 
 ### ③ 注册 GitHub 账号
 
-<https://github.com/signup> —— 用你自己的邮箱注册，用户名建议用拼音（后面建分支、命名文件都要用）。
+<https://github.com/signup> —— 用你自己的邮箱注册。**用户名随你起**，唯一要求是别人看到 `test/<你的名字>` 这种分支时能认出是你，比如叫 `zhangsan`、`lisi99` 都行。
 
 注册后去 **Settings → Emails** 确认那个邮箱是 **Verified** 状态。
 Git 提交记录靠**邮箱**认人，邮箱没在 GitHub 上验证过，Contributors 页面就不会显示你。
@@ -78,10 +78,21 @@ Git 提交记录靠**邮箱**认人，邮箱没在 GitHub 上验证过，Contrib
 
 ```bash
 git config --global user.name  "你的名字或拼音"
-git config --global user.email "你的邮箱"
+git config --global user.email "<你在 GitHub 注册用的同一个邮箱>"
 git config --global init.defaultBranch main     # 与 GitHub 默认分支保持一致
 git config --global --list                       # 检查是否都写进去了
 ```
+
+🔴 **这里的邮箱必须和你 GitHub 账号里 Verified 的那个一模一样**，一个字母都不能差。
+
+| | 结果 |
+|---|---|
+| 两边邮箱一致 | ✅ 提交算你的，Contributors 有你头像，答辩能证明你做了啥 |
+| 邮箱不一致 / 没验证 | ❌ 提交会显示成灰色无名用户，GitHub 不认这是你干的活 |
+
+常见翻车：注册 GitHub 用的是 QQ 邮箱，配 git 时随手填了学校邮箱或 163 邮箱 —— 提交照样能推上去，但功劳不算你的。
+
+不确定自己 GitHub 用的是哪个邮箱？登录后看 <https://github.com/settings/emails>。
 
 ### ⑤ 测试能不能连上 GitHub
 
@@ -114,7 +125,7 @@ git config --global --unset https.proxy
 - [ ] `git --version` 有版本号
 - [ ] `python --version` 显示 3.11.x
 - [ ] GitHub 已注册且邮箱 Verified
-- [ ] `git config --global --list` 里能看到自己的 name / email
+- [ ] `git config --global --list` 里能看到自己的 name / email，且**邮箱与 GitHub 那个完全一致**
 - [ ] `curl.exe -I https://github.com` 返回 200/301
 
 ---
